@@ -83,6 +83,13 @@ class Fullscreen {
         // Keep reference to parent
         this.player = player;
 
+        // Set width or Styling from video element attribute, in this case width
+			
+        if (this.player.media.hasAttribute('width')) {
+            var fWidth = this.player.media.getAttribute('width');
+            this.player.elements.container.setAttribute('style', 'max-width: ' + fWidth + '');
+        }
+        
         // Get prefix
         this.prefix = Fullscreen.prefix;
         this.property = Fullscreen.property;
@@ -100,6 +107,25 @@ class Fullscreen {
             document,
             this.prefix === 'ms' ? 'MSFullscreenChange' : `${this.prefix}fullscreenchange`,
             () => {
+                
+          // FIX to retain sizes when escaping fullscreen 
+			if (document.addEventListener) {
+            document.addEventListener('webkitfullscreenchange', exitHandler, false);
+            document.addEventListener('mozfullscreenchange', exitHandler, false);
+            document.addEventListener('fullscreenchange', exitHandler, false);
+            document.addEventListener('MSFullscreenChange', exitHandler, false);
+			}   
+			function exitHandler() {
+			  if (!document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
+				  
+			   if (this.player.media.hasAttribute('width')) {
+					var fWidth = this.player.media.getAttribute('width');			
+					this.player.elements.container.setAttribute('style', 'max-width: ' + fWidth + '');
+				}
+				//window.location.reload(false);
+			  }
+			}
+                
                 // TODO: Filter for target??
                 onChange.call(this);
             },
@@ -116,6 +142,11 @@ class Fullscreen {
         });
 
         // Update the UI
+        
+        // Remove styling for fullscreen
+       if(this.player.fullscreen.active) {						
+          this.player.elements.container.removeAttribute('style');
+        }
         this.update();
     }
 
@@ -224,7 +255,7 @@ class Fullscreen {
 
         // iOS native fullscreen doesn't need the request step
         if (browser.isIos && this.player.config.fullscreen.iosNative) {
-            this.target.webkitEnterFullscreen();
+			this.target.webkitEnterFullscreen();
         } else if (!Fullscreen.native || this.forceFallback) {
             toggleFallback.call(this, true);
         } else if (!this.prefix) {
