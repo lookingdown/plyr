@@ -6,7 +6,7 @@ import captions from './captions';
 import controls from './controls';
 import support from './support';
 import browser from './utils/browser';
-import { getElement, toggleClass } from './utils/elements';
+import { toggleClass } from './utils/elements';
 import { ready, triggerEvent } from './utils/events';
 import i18n from './utils/i18n';
 import is from './utils/is';
@@ -138,22 +138,6 @@ const ui = {
         Array.from(this.elements.buttons.play || []).forEach(button => {
             button.setAttribute('aria-label', label);
         });
-
-        // Set iframe title
-        // https://github.com/sampotts/plyr/issues/124
-        if (this.isEmbed) {
-            const iframe = getElement.call(this, 'iframe');
-
-            if (!is.element(iframe)) {
-                return;
-            }
-
-            // Default to media type
-            const title = !is.empty(this.config.title) ? this.config.title : 'video';
-            const format = i18n.get('frameTitle', this.config);
-
-            iframe.setAttribute('title', format.replace('{title}', title));
-        }
     },
 
     // Toggle poster

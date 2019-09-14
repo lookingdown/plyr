@@ -120,7 +120,7 @@ const source = {
                 }
 
                 // If HTML5 or embed but not fully supported, setupInterface and call ready now
-                if (this.isHTML5 || (this.isEmbed && !this.supported.ui)) {
+                if (this.isHTML5) {
                     // Setup interface
                     ui.build.call(this);
                 }

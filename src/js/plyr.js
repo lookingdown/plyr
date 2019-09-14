@@ -8,13 +8,12 @@
 import captions from './captions';
 import defaults from './config/defaults';
 import { pip } from './config/states';
-import { getProviderByUrl, providers, types } from './config/types';
+import { providers, types } from './config/types';
 import Console from './console';
 import controls from './controls';
 import Fullscreen from './fullscreen';
 import Listeners from './listeners';
 import media from './media';
-import Ads from './plugins/ads';
 import PreviewThumbnails from './plugins/preview-thumbnails';
 import source from './source';
 import Storage from './storage';
@@ -28,7 +27,6 @@ import loadSprite from './utils/load-sprite';
 import { clamp } from './utils/numbers';
 import { cloneDeep, extend } from './utils/objects';
 import { getAspectRatio, reduceAspectRatio, setAspectRatio, validateRatio } from './utils/style';
-import { parseUrl } from './utils/urls';
 
 // Private properties
 // TODO: Use a WeakMap for private globals
@@ -149,70 +147,11 @@ class Plyr {
         this.elements.original = clone;
 
         // Set media type based on tag or data attribute
-        // Supported: video, audio, vimeo, youtube
+        // Supported: video, audio
         const type = this.media.tagName.toLowerCase();
-        // Embed properties
-        let iframe = null;
-        let url = null;
 
         // Different setup based on type
         switch (type) {
-            case 'div':
-                // Find the frame
-                iframe = this.media.querySelector('iframe');
-
-                // <iframe> type
-                if (is.element(iframe)) {
-                    // Detect provider
-                    url = parseUrl(iframe.getAttribute('src'));
-                    this.provider = getProviderByUrl(url.toString());
-
-                    // Rework elements
-                    this.elements.container = this.media;
-                    this.media = iframe;
-
-                    // Reset classname
-                    this.elements.container.className = '';
-
-                    // Get attributes from URL and set config
-                    if (url.search.length) {
-                        const truthy = ['1', 'true'];
-
-                        if (truthy.includes(url.searchParams.get('autoplay'))) {
-                            this.config.autoplay = true;
-                        }
-                        if (truthy.includes(url.searchParams.get('loop'))) {
-                            this.config.loop.active = true;
-                        }
-
-                        // TODO: replace fullscreen.iosNative with this playsinline config option
-                        // YouTube requires the playsinline in the URL
-                        if (this.isYouTube) {
-                            this.config.playsinline = truthy.includes(url.searchParams.get('playsinline'));
-                            this.config.youtube.hl = url.searchParams.get('hl'); // TODO: Should this be setting language?
-                        } else {
-                            this.config.playsinline = true;
-                        }
-                    }
-                } else {
-                    // <div> with attributes
-                    this.provider = this.media.getAttribute(this.config.attributes.embed.provider);
-
-                    // Remove attribute
-                    this.media.removeAttribute(this.config.attributes.embed.provider);
-                }
-
-                // Unsupported or missing provider
-                if (is.empty(this.provider) || !Object.keys(providers).includes(this.provider)) {
-                    this.debug.error('Setup failed: Invalid provider');
-                    return;
-                }
-
-                // Audio will come later for external providers
-                this.type = types.video;
-
-                break;
-
             case 'video':
             case 'audio':
                 this.type = type;
@@ -283,7 +222,7 @@ class Plyr {
 
         // Setup interface
         // If embed but not fully supported, build interface now to avoid flash of controls
-        if (this.isHTML5 || (this.isEmbed && !this.supported.ui)) {
+        if (this.isHTML5) {
             ui.build.call(this);
         }
 
@@ -295,11 +234,6 @@ class Plyr {
 
         // Setup fullscreen
         this.fullscreen = new Fullscreen(this);
-
-        // Setup ads if provided
-        if (this.config.ads.enabled) {
-            this.ads = new Ads(this);
-        }
 
         // Autoplay if required
         if (this.isHTML5 && this.config.autoplay) {
@@ -326,18 +260,6 @@ class Plyr {
         return this.provider === providers.html5;
     }
 
-    get isEmbed() {
-        return this.isYouTube || this.isVimeo;
-    }
-
-    get isYouTube() {
-        return this.provider === providers.youtube;
-    }
-
-    get isVimeo() {
-        return this.provider === providers.vimeo;
-    }
-
     get isVideo() {
         return this.type === types.video;
     }
@@ -352,11 +274,6 @@ class Plyr {
     play() {
         if (!is.function(this.media.play)) {
             return null;
-        }
-
-        // Intecept play with ads
-        if (this.ads && this.ads.enabled) {
-            this.ads.managerPromise.then(() => this.ads.play()).catch(() => this.media.play());
         }
 
         // Return the promise (for HTML5)
@@ -484,11 +401,6 @@ class Plyr {
      */
     get buffered() {
         const { buffered } = this.media;
-
-        // YouTube / Vimeo return a float between 0-1
-        if (is.number(buffered)) {
-            return buffered;
-        }
 
         // HTML5
         // TODO: Handle buffered chunks of the media
@@ -678,42 +590,6 @@ class Plyr {
      */
     get speed() {
         return Number(this.media.playbackRate);
-    }
-
-    /**
-     * Get the minimum allowed speed
-     */
-    get minimumSpeed() {
-        if (this.isYouTube) {
-            // https://developers.google.com/youtube/iframe_api_reference#setPlaybackRate
-            return Math.min(...this.options.speed);
-        }
-
-        if (this.isVimeo) {
-            // https://github.com/vimeo/player.js/#setplaybackrateplaybackrate-number-promisenumber-rangeerrorerror
-            return 0.5;
-        }
-
-        // https://stackoverflow.com/a/32320020/1191319
-        return 0.0625;
-    }
-
-    /**
-     * Get the maximum allowed speed
-     */
-    get maximumSpeed() {
-        if (this.isYouTube) {
-            // https://developers.google.com/youtube/iframe_api_reference#setPlaybackRate
-            return Math.max(...this.options.speed);
-        }
-
-        if (this.isVimeo) {
-            // https://github.com/vimeo/player.js/#setplaybackrateplaybackrate-number-promisenumber-rangeerrorerror
-            return 2;
-        }
-
-        // https://stackoverflow.com/a/32320020/1191319
-        return 16;
     }
 
     /**
@@ -1172,27 +1048,6 @@ class Plyr {
 
             // Clean up
             done();
-        } else if (this.isYouTube) {
-            // Clear timers
-            clearInterval(this.timers.buffering);
-            clearInterval(this.timers.playing);
-
-            // Destroy YouTube API
-            if (this.embed !== null && is.function(this.embed.destroy)) {
-                this.embed.destroy();
-            }
-
-            // Clean up
-            done();
-        } else if (this.isVimeo) {
-            // Destroy Vimeo API
-            // then clean up (wait, to prevent postmessage errors)
-            if (this.embed !== null) {
-                this.embed.unload().then(done);
-            }
-
-            // Vimeo does not always return
-            setTimeout(done, 200);
         }
     }
 
@@ -1207,7 +1062,7 @@ class Plyr {
     /**
      * Check for support
      * @param {String} type - Player type (audio/video)
-     * @param {String} provider - Provider (html5/youtube/vimeo)
+     * @param {String} provider - Provider (html5)
      * @param {Boolean} inline - Where player has `playsinline` sttribute
      */
     static supported(type, provider, inline) {

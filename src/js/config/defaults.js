@@ -15,13 +15,6 @@ const defaults = {
     // Auto play (if supported)
     autoplay: false,
 
-    // Only allow one media playing at once (vimeo only)
-    autopause: true,
-
-    // Allow inline playback on iOS (this effects YouTube/Vimeo - HTML5 requires the attribute present)
-    // TODO: Remove iosNative fullscreen option in favour of this (logic needs work)
-    playsinline: true,
-
     // Default time to skip when rewind/fast forward
     seekTime: 10,
 
@@ -189,18 +182,6 @@ const defaults = {
     // URLs
     urls: {
         download: null,
-        vimeo: {
-            sdk: 'https://player.vimeo.com/api/player.js',
-            iframe: 'https://player.vimeo.com/video/{0}?{1}',
-            api: 'https://vimeo.com/api/v2/video/{0}.json',
-        },
-        youtube: {
-            sdk: 'https://www.youtube.com/iframe_api',
-            api: 'https://noembed.com/embed?url=https://www.youtube.com/watch?v={0}',
-        },
-        googleIMA: {
-            sdk: 'https://imasdk.googleapis.com/js/sdkloader/ima3.js',
-        },
     },
 
     // Custom control listeners
@@ -260,22 +241,8 @@ const defaults = {
         'controlsshown',
         'ready',
 
-        // YouTube
-        'statechange',
-
         // Quality
         'qualitychange',
-
-        // Ads
-        'adsloaded',
-        'adscontentpause',
-        'adscontentresume',
-        'adstarted',
-        'adsmidpoint',
-        'adscomplete',
-        'adsallcomplete',
-        'adsimpression',
-        'adsclick',
     ],
 
     // Selectors
@@ -332,7 +299,6 @@ const defaults = {
         embedContainer: 'plyr__video-embed__container',
         poster: 'plyr__poster',
         posterEnabled: 'plyr__poster-enabled',
-        ads: 'plyr__ads',
         control: 'plyr__control',
         controlPressed: 'plyr__control--pressed',
         playing: 'plyr--playing',
@@ -393,36 +359,10 @@ const defaults = {
         },
     },
 
-    // Advertisements plugin
-    // Register for an account here: http://vi.ai/publisher-video-monetization/?aid=plyrio
-    ads: {
-        enabled: false,
-        publisherId: '',
-        tagUrl: '',
-    },
-
     // Preview Thumbnails plugin
     previewThumbnails: {
         enabled: false,
         src: '',
-    },
-
-    // Vimeo plugin
-    vimeo: {
-        byline: false,
-        portrait: false,
-        title: false,
-        speed: true,
-        transparent: false,
-    },
-
-    // YouTube plugin
-    youtube: {
-        noCookie: false, // Whether to use an alternative version of YouTube without cookies
-        rel: 0, // No related vids
-        showinfo: 0, // Hide info
-        iv_load_policy: 3, // Hide annotations
-        modestbranding: 1, // Hide logos as much as possible (they still show one in the corner when paused)
     },
 };
 

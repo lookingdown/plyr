@@ -53,10 +53,6 @@ import toggleClass from './toggle-class';
                 keys: {
                     google: 'AIzaSyDrNwtN3nLH_8rjCmu5Wq3ZCm4MNAVdc0c',
                 },
-                ads: {
-                    enabled: env.prod || env.dev,
-                    publisherId: '918848828995742',
-                },
                 previewThumbnails: {
                     enabled: true,
                     src: [

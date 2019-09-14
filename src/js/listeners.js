@@ -301,20 +301,6 @@ class Listeners {
             },
         );
 
-        // Set a gutter for Vimeo
-        const setGutter = (ratio, padding, toggle) => {
-            if (!player.isVimeo) {
-                return;
-            }
-
-            const target = player.elements.wrapper.firstChild;
-            const [, y] = ratio;
-            const [videoX, videoY] = getAspectRatio.call(player);
-
-            target.style.maxWidth = toggle ? `${(y / videoY) * videoX}px` : null;
-            target.style.margin = toggle ? '0 auto' : null;
-        };
-
         // Resize on fullscreen change
         const setPlayerSize = measure => {
             // If we don't need to measure the viewport
@@ -341,17 +327,14 @@ class Listeners {
                 return;
             }
 
-            // If it's not an embed and no ratio specified
-            if (!player.isEmbed && is.empty(player.config.ratio)) {
+            // If no ratio specified
+            if (is.empty(player.config.ratio)) {
                 return;
             }
 
             const isEnter = event.type === 'enterfullscreen';
             // Set the player size when entering fullscreen to viewport size
             const { padding, ratio } = setPlayerSize(isEnter);
-
-            // Set Vimeo gutter
-            setGutter(ratio, padding, isEnter);
 
             // If not using native fullscreen, we need to check for resizes of viewport
             if (!usingNative) {

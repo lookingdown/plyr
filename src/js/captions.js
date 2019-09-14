@@ -31,7 +31,7 @@ const captions = {
         }
 
         // Only Vimeo and HTML5 video supported at this point
-        if (!this.isVideo || this.isYouTube || (this.isHTML5 && !support.textTracks)) {
+        if (!this.isVideo || (this.isHTML5 && !support.textTracks)) {
             // Clear menu and hide
             if (
                 is.array(this.config.controls) &&
@@ -245,11 +245,6 @@ const captions = {
             if (!passive) {
                 this.captions.language = language;
                 this.storage.set({ language });
-            }
-
-            // Handle Vimeo captions
-            if (this.isVimeo) {
-                this.embed.enableTextTrack(language);
             }
 
             // Trigger event
